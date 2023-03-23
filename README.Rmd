@@ -1,0 +1,58 @@
+---
+title: Data science job salaries
+author: Nicolas Dufour, Simon Duchesne, Olivier Bouchard et Thibault Masson
+output: github_document
+---
+
+## Introduction
+ 
+Les données de notre étude proviennent du site ai-jobs.com. Ces dernières ont été recueillies dans le cadre d’un sondage volontaire où les participants devaient répondre à 11 questions. D’ailleurs, chacune des réponses consiste aux données de notre échantillon.
+ 
+## But
+ 
+Ce qui nous amène au but de notre laboratoire qui était de répondre à la question suivante : Est-ce que les Américains sont les individus les mieux rémunérés dans le domaine des sciences des données ?
+ 
+## Présentation jeu de données
+ 
+ 
+```{r load-data, echo = FALSE}
+ds_salaries <- read.csv('./data/salaries.csv')
+```
+
+Nous avons dans notre jeu de données 11 variables, 2 variables numériques, 9 variables catégoriques pour un total de 1332 instances. Dans notre pré-traitement de données nous avons pris la décision de ne pas tenir compte de la colonne salaire et seulement la colonne du salaire converti en dollars américain qui est notre variable cible.
+
+## Proportions du dataset
+ 
+Si après cela nous regardons les proportions d’employés selon les pays, on observe que les États-Unis dominent largement en regroupant près de 70 % des travailleurs en data science. Vient ensuite le Royaume-Uni avec seulement 6 % de la proportion totale. Dans l’image suivante, on observe que les proportions et les niveaux d’expérience sont très hétérogènes entre les différents types d’emplois que ce soit aux États-Unis ou dans le reste du monde. Il est aussi intéressant de voir qu’il n’y a aucun pigiste ou travailleur à temps partiel aux É.-U. en science des données.
+ 
+## Analyses
+ 
+Concernant la taille des entreprises, on observe que la majorité des employés en data science se tournent vers des compagnies de moyenne taille en grande majorité puis les grandes et enfin les petites. Si l’on compare avec le salaire, on voit bien que les moyennes et grandes entreprises offrent les meilleurs salaires avec une proportion majoritaire de salaires entre 100 et 250k alors que chez les petites entreprises la plus grosse proportion est entre 50 à 75k.
+
+Dans cette section, notre but était de visualiser les emplois, dont le salaire commence à plaire à la société. À cet effet, ce graphique illustre les 5 emplois les mieux rémunérés en moyenne entre 100K et 150K. Dans les types d’emploi, “Data scientist” et “Data Engineer" arrivent en premier. Toutefois, on peut observer dans les colonnes de droite que ces catégories représentent à eux seuls plus de 50% des répondants des 5 premières places. Ainsi, on peut supposer que s’il y avait eu une distribution égale, ces emplois auraient potentiellement été dépassés. D’ailleurs, on observe que le classement est très serré avec une différence d’environ 3K $ entre la première et la deuxième place, ce qui n’est pas vraiment significatif.
+
+En étudiant le lien entre le salaire et le travail à distance, on s’est rendu compte que le taux de travail à distance ne semble pas avoir d’influence sur le salaire et que les É.-U. gagnent plus que ceux qui résident en dehors. En effet, on observe que les salaires minimaux de chaque ratio de travail en distanciel sont presque équivalents aux salaires moyens de ceux qui résident en dehors des É.-U.. Ainsi, en considérant le travail à distance, on voit que les États-Unis ont de meilleurs salaires.  Aussi, nous pouvons voir que les années de covid ont eu un impact sur la quantité de distanciels et cela est flagrant quand on regarde l’augmentation du nombre de personnes totalement à distance aux États-Unis de 2020 à 2022.
+
+Concernant les classes de salaire, on remarque que la distribution du salaire pour les non-résidents aux É.-U. ressemble à une loi gaussienne dans laquelle le maximum est la classe 50 à 75k. Au contraire chez les Américains le nombre de répondants est de plus en plus important en avançant vers les hautes classes salariales avec une domination claire dans les classes supérieures à 100k. Les Américains gagnent donc plus et l’on peut également constater que le travail à temps plein domine. 
+
+Pour ce qui est des classes de salaire selon le salaire, nous observons que les boîtes sont similaires les unes aux autres. En effet, les valeurs maximales, minimales et médianes sont toutes semblables pour les résidents américains ou non. Toutefois, dans la catégorie au-dessus de 250K, on remarque un grand écart entre les données. Effectivement, le salaire maximal américain est près de 300K supérieur au maximum des non-résidents. Cependant, nous supposons qu'ils ne s’agissent pas de valeurs significatives puisqu'un seul répondant non-Américain à répondu à cette question comparativement à 6 pour les Américains.
+
+D’abord, si on évalue le graphique du point de vue américain, on observe qu’il y a plus de personnes qui gagnent des salaires élevés. Cela s’explique grâce aux largeurs des violons qui sont plus épais du côté américain lorsque les salaires sont acceptables. Un fait surprenant est que le domaine des sciences des données semble avoir eu une grande augmentation durant l’année 2021. En effet, le violon est plus large plus longtemps sur le graphique par rapport aux autres années.Ensuite, du point de vue des non-résidents américains, on remarque qu’il n’y a pas vraiment de changement avec les années. Effectivement, les proportions, ainsi que les salaires ne semblent pas augmentés. De plus, il s'avère que les salaires maximums diminuent avec les années. D’ailleurs, les moments où les violons sont les plus larges pour le reste du monde, il s’agit des segments les plus minces chez les Américains et l’inverse est aussi observable. On peut conclure que les salaires de base aux États-Unis équivaudraient aux salaires les plus élevés ailleurs sur le globe. En somme, grâce à ce graphique, il est facile d’illustrer que les Américains gagnent beaucoup plus d’argent en moyenne que le reste du monde.
+ 
+## Régression
+ 
+Dans cette section, nous avons créé un modèle linéaire afin de prédire le salaire moyen selon chaque emploi, et ce pour les Américains et les non-Américains. Notre variable de réponse était le salaire moyen et la variable explicative était le nombre d’années suivant 2022. On observe que tous les emplois aux États-Unis seront potentiellement mieux rémunérés que le reste des pays. En général, parmi tous les emplois, c’est près de 90 K $ de plus qui seront reversés aux employés américains annuellement. On remarque dans le bas de notre tableau que les salaires américains sont près de 2 fois supérieurs, ce qui est très significatif. Ainsi, les emplois comme Data Engineer, Data Scientist et ML Engineer ont un potentiel extrêmement supérieur par rapport au reste de la planète. 
+ 
+## Conclusion
+
+En définitive, lors de notre étude, il a été possible d’explorer plusieurs facteurs à l’origine d’une disparité salariale. Par exemple, nous avons observé que la taille d’une compagnie ou le type d’emploi influencent la somme que perçoit un individu. Puis, nous avons comparé nos résultats avec la géographie afin de vérifier notre hypothèse : est-ce que les Américains sont les individus les mieux rémunérés dans le domaine des sciences des données ? Grâce aux graphiques présentés précédemment, nous pouvons conclure que notre hypothèse s’est avérée positive. En effet, notre variable cible était toujours supérieure du côté des États-Unis. D’ailleurs, les valeurs maximales et minimales l'étaient aussi, ce qui signifie qu’aux É.-U., les individus sont moins susceptibles d’avoir un moins bon salaire qu’ailleurs. De plus, selon la tendance actuelle, si nous avions à faire une prédiction, on peut supposer que les salaires ne sont pas prêts à diminuer aux É.-U. et resteront supérieurs à la concurrence mondiale. D’autre part, nous voulions vérifier si cette supposition était fondée, ainsi nous avons cherché des similarités entre nos résultats et ceux produits par l’Université du Wisconsin. La comparaison confirme notre doute puisqu’elle estime des résultats similaires dans le domaine. Toutefois, comme il a été expliqué précédemment, notre base de données semble avoir été compromise du fait qu’une grande majorité des répondants sont d’origine américaine, soit 68,32% d’entre eux. On peut supposer que si nous avions eu un échantillon plus homogène, nos résultats auraient été plus fiables. De plus, dans certains pays, le coût de la vie est plus élevé qu’ailleurs ce qui consiste à une cause d’erreur. Plus le pays à un coût de la vie élevé, plus les salaires sont élevés. Par exemple, les É.-U. se situent à la 15e place tandis que l’Inde à la 135e. Ainsi, si nous avions à refaire le projet, nous pourrions calculer les salaires en fonction de ce facteur pour décerner les personnes les plus avantagées par rapport à leur pays.
+
+## Données
+
+Data Science Job Salaries. (2022, 15 juin). Kaggle, dataset electronique, visité le 8 novembre 2022, <https://www.kaggle.com/datasets/ruchi798/data-science-job-salaries>.
+
+## Références
+
+Indice du Coût de la Vie par Pays 2022 Milieu de l’année. (s. d.). <https://fr.numbeo.com/co%C3%BBt-de-la-vie/classements-par-pays>.
+
+University of Wisconsin Data Science Degree. (2021, 22 juillet). How Much Is a Data Scientist’s Salary ? | University of Wisconsin. <https://datasciencedegree.wisconsin.edu/data-science/data-scientist-salary/>.

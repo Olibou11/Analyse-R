@@ -1,0 +1,300 @@
+---
+title: "Les emplois dans la science des données"
+subtitle: "Est-ce que les américains sont ceux les mieux rémunérés?"
+author: "Nicolas Dufour, Simon Duchesne, Olivier Bouchard, Thibault Masson"
+institute: "UQAC"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: xaringan-themer.css
+    lib_dir: libs
+    nature:
+      ratio: "16:9"
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r load-packages, include = FALSE}
+# Ajoutez tous les packages supplémentaires dont vous avez besoin à ce chunk
+library(tidyverse)
+library(tidymodels)
+library(palmerpenguins)
+library(knitr)
+library(xaringanthemer)
+library(countrycode)
+library(skimr)
+library(dplyr)
+```
+
+```{r setup-xaringan, include=FALSE}
+# Pour une meilleure résolution de figure
+knitr::opts_chunk$set(fig.retina = 3, dpi = 300, fig.width = 6, fig.asp = 0.618, out.width = "80%", warning = FALSE, message = FALSE)
+style_xaringan(
+  title_slide_text_color = '#ffffff',
+  title_slide_background_image = "img/datascience_bkground_2.jpg",
+  background_image = "img/datascience_bkground_3.jpg"
+)
+```
+
+```{r setup-other, include=FALSE}
+
+theme_set(theme_minimal())
+
+```
+
+```{r load-data, include=FALSE}
+
+# Donnée sur les salaires
+ds_salaries = read.csv('../data/salaries.csv') %>%
+  mutate(classe_salaire = case_when(
+    salary_in_usd >= 0 & salary_in_usd <= 25000 ~ "25k ou moins",
+    salary_in_usd > 25000 & salary_in_usd <= 50000 ~ "25k à 50k",
+    salary_in_usd > 50000 & salary_in_usd <= 75000 ~ "50k à 75k",
+    salary_in_usd > 75000 & salary_in_usd <= 100000 ~ "75k à 100k",
+    salary_in_usd > 100000 & salary_in_usd <= 150000 ~ "100k à 150k",
+    salary_in_usd > 150000 & salary_in_usd <= 250000 ~ "150k à 250k",
+    salary_in_usd > 250000  ~ "250k +" )) %>%
+  mutate(classe_salaire = factor(classe_salaire, levels = c("25k ou moins", "25k à 50k", "50k à 75k", "75k à 100k", "100k à 150k", "150k à 250k", "250k +"))) %>%
+  mutate(USA = factor(employee_residence == 'US', levels = c(FALSE, TRUE), labels = c('Non rédident USA', 'Résident USA'))) %>%
+  mutate(employment_type = factor(employment_type, levels=c('FL', 'CT', 'PT', 'FT' ), labels = c('Pigiste', 'Contractant', 'Temps partiel', 'Temps plein'))) %>%
+  mutate(experience_level = factor(experience_level, levels = c('EN', 'MI', 'SE', 'EX'), labels = c('Junior', 'Intermédiaire', 'Expert', 'Directeur'))) %>%
+  mutate(company_size = factor(company_size, levels = c('S','M', 'L'), labels = c('Petite', 'Moyenne', 'Grande'))) %>%
+  mutate(job_title = factor(job_title))
+
+
+world <- map_data("world")
+
+```
+
+
+# Le but
+
+Ce qui nous amène au but de notre laboratoire qui était de répondre à la question suivante : Est-ce que les américains sont les individus les mieux rémunérés dans le domaine des sciences des données ?
+
+---
+
+# Présentention du jeu de données
+
+```{r describe, echo=FALSE}
+
+skim(ds_salaries) %>% select(skim_type, skim_variable, n_missing) %>% kable(col.names = c("Type", "Variable", "Manquant"), format = "html", table.attr = "style='font-size:75%;'")
+```
+
+---
+### Proportion de l'échantillon
+
+```{r, echo=FALSE}
+proportion_pay <- ds_salaries %>%
+  count(employee_residence) %>%
+  mutate(freq = round(n/sum(n)*100, 2)) %>%
+  mutate(world_region = countrycode(employee_residence, 'iso2c', 'country.name')) %>%
+  mutate(world_region = ifelse(world_region == 'United States', 'USA', world_region)) %>%
+  ungroup() %>%
+  arrange(desc(freq)) %>%
+  filter(freq>=1)
+```
+
+.pull-left[
+```{r, echo=FALSE}
+proportion_pay %>%
+  mutate(country = countrycode(employee_residence, 'iso2c', 'country.name.fr')) %>%
+  select(country, freq) %>%
+  kable(col.names = c("Pays", "Pourcentage de l'échantillon"), format = "html", table.attr = "style='font-size:90%;'")
+
+```
+]
+
+.pull-right[
+
+```{r, echo=FALSE, out.height='200px'}
+
+world %>% 
+  distinct(region) %>% 
+  left_join(proportion_pay, by = c('region' = 'world_region')) %>%
+  mutate(freq = freq) %>%
+  ggplot(aes(fill=freq, map_id = region)) +
+    geom_map(map=world, color = 'black', size = 0.1) +
+    expand_limits(x = world$long, y = world$lat) +
+    scale_fill_continuous(type = "viridis", na.value="white") +
+    theme_void()  
+
+```
+
+]
+
+---
+
+### Proportion de l'échantillon
+#### Type d'emploi selon l'expérience
+
+```{r, echo=FALSE, out.width='800px', out.height='400px'}
+
+ds_salaries %>%
+  group_by(employment_type, experience_level) %>%
+  ggplot() +
+    geom_bar(aes(y = employment_type, fill=experience_level), position = "fill") +
+    labs(y="Type d'emploi", x="Proportion", fill="Niveau d'expérience") +
+    facet_grid(USA~.) +
+    theme_minimal()
+
+```
+
+---
+
+### Répartition des salaires selon la grandeur des entreprises
+
+```{r, echo=FALSE}
+ggplot(ds_salaries,aes(x = company_size, fill= classe_salaire))+
+  geom_bar() +  
+  labs(x = "Grandeur d'entreprise", y = "Quantité", fill = "Classe de salaire")
+
+```
+
+---
+
+### Top 5 des emplois les mieux rémunérés en moyenne entre 100K et 150K
+
+```{r, echo=FALSE, out.width=640, out.height=480}
+ds_salaries %>%
+  filter(classe_salaire %in% c("100k à 150k","150k à 250k", "250k +")) %>%
+  group_by(job_title, classe_salaire) %>%
+  summarise(salary_mean=mean(salary_in_usd), nb=n()) %>%
+  arrange(desc(salary_mean), desc(nb)) %>%
+  pivot_wider(names_from = classe_salaire, values_from = c(salary_mean, nb)) %>%
+  ungroup() %>%
+  top_n(5) %>%
+  kable(format = "html", table.attr = "style='width:30%;'")
+  
+```
+
+---
+
+### Répartition du télétravail
+
+```{r, echo=FALSE}
+
+ds_salaries %>%
+  ggplot() +
+    geom_jitter( aes(x = remote_ratio, y = salary_in_usd, colour = USA), position = position_jitter(15)) +
+    scale_x_discrete(limits = c(0, 50, 100), labels=c('0%', '50%', '100%'), name="Proportion de travail à distance") +
+    scale_y_continuous(breaks=c(0, 200000, 400000, 600000), labels = c('0 $', '200k $', '400K $', '600k$'), name = "Salaire USD") +
+    facet_grid(work_year~USA)
+
+```
+
+---
+
+### Salaire divisé en classes
+```{r, echo=FALSE, out.height='400px', out.width='800px'}
+
+ds_salaries %>%
+  ggplot() +
+    geom_bar(aes(x = classe_salaire, fill=employment_type)) +
+    theme_minimal() +
+    theme(legend.position = "bottom") +
+    labs(x="Classes de salaire", y="Nombre de répondants", fill="Type d'emploi") +
+    facet_grid(USA~.)
+
+```
+
+---
+
+### Répartion des classes de salaires
+
+```{r, echo=FALSE}
+
+ds_salaries %>%
+  ggplot(aes(x = classe_salaire, y = salary_in_usd, color=USA)) +
+    geom_boxplot() +
+    scale_y_continuous(breaks=c(0, 200000, 400000, 600000), labels = c('0 $', '200k $', '400K $', '600k$')) +
+    labs(x="Classe de salaire", y="Salaire USD") +
+    theme(legend.position = "bottom")
+
+```
+
+---
+
+### Évolution des salaires selon les années
+
+```{r, echo=FALSE}
+
+ds_salaries %>%
+  ggplot() +
+    geom_violin(aes(y=USA, x=salary_in_usd), fill="#2462c7") +
+    geom_vline(xintercept = mean(ds_salaries$salary_in_usd)) + 
+    facet_grid(work_year~.) +
+    theme_minimal() +
+    labs(x="Salaire", y="Résident") +
+    scale_x_continuous(breaks=c(0, 200000, 400000, 600000), labels = c('0 $', '200k $', '400K $', '600k$'))
+
+```
+
+---
+
+### Modèle de régression
+
+```{r, echo=FALSE, message=FALSE}
+
+top_15_job_title <- ds_salaries %>%
+  filter(salary_in_usd >= 250000) %>%
+  group_by(job_title, USA) %>%
+  summarise(max_salary_in_usd = max(salary_in_usd)) %>%
+  arrange(desc(max_salary_in_usd)) %>%
+  ungroup() %>%
+  top_n(15)
+
+top_15_job_title_all <- ds_salaries %>%
+  filter(job_title %in% top_15_job_title$job_title)
+
+salaries_split <- initial_split(top_15_job_title_all, prop = 0.80)
+
+train_data <- training(salaries_split)
+test_data <- testing(salaries_split)
+
+salarie_fit <- linear_reg() %>%
+  set_engine('lm') %>%
+  fit(salary_in_usd ~ work_year + job_title + USA, data=train_data)
+
+USA = unique(top_15_job_title_all$USA)
+tmp = data.frame(USA=USA, work_year=2023, salary_in_usd=NA)
+job_title = data.frame(job_title = unique(top_15_job_title_all$job_title))
+tmp = merge(job_title, tmp)
+
+tmp$salary_in_usd = predict(salarie_fit, new_data = tmp)$.pred
+
+```
+
+.pull-left[
+##### 2022
+```{r, echo=FALSE, message=FALSE}
+
+top_15_job_title_all %>%
+  filter(work_year == 2022) %>%
+  group_by(job_title, USA) %>%
+  summarise(salary_in_usd = mean(salary_in_usd)) %>%
+  arrange(desc(salary_in_usd)) %>%
+  pivot_wider(names_from = USA, values_from = salary_in_usd) %>%
+  kable(format = "html", table.attr = "style='font-size:70%;'")
+
+```
+]
+
+.pull-right[
+##### 2023
+```{r, echo=FALSE, message=FALSE}
+
+tmp %>%
+  select(job_title, USA, salary_in_usd) %>%
+  arrange(desc(salary_in_usd)) %>%
+  pivot_wider(names_from = USA, values_from = salary_in_usd) %>%
+  kable(format = "html", table.attr = "style='font-size:70%;'")
+
+```
+]
+
+---
+
+# Conclusion
+
+
